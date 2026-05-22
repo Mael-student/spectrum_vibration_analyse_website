@@ -122,12 +122,11 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH ONLINE DOCUMENTATION
+# 6. MODE B: FILE UPLOAD WITH ADVANCED REPORTING
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
     
-    # AJOUT : Spécifications techniques affichées directement dans l'application en anglais
     with st.expander("📋 Batch Import File Requirements & Validation Specifications", expanded=True):
         st.markdown("""
         * **Supported Formats:** Standard Excel (`.xlsx`) or Comma-Separated Values (`.csv`).
@@ -158,8 +157,9 @@ else:
             else:
                 if st.button("RUN BATCH DIAGNOSTIC"):
                     if model:
-                        results = []
+                        predictions_list = []
                         
+                        # Exécution des diagnostics ligne par ligne
                         for i in range(len(df_input)):
                             row_data = df_input.iloc[i]
                             text_mpt = str(row_data['MptDesc']).strip()
@@ -176,24 +176,23 @@ else:
                             else:
                                 diag = "❌ Invalid MptDesc / Direction"
 
-                            results.append({
-                                "Sample": i + 1,
-                                "Measurement Point (MptDesc)": text_mpt,
-                                "RPM": row_data['RPM'],
-                                "Diagnostic Result": diag
-                            })
+                            predictions_list.append(diag)
+
+                        # MODIFIÉ : On intègre directement le résultat dans une copie du tableau d'origine
+                        df_results = df_input.copy()
+                        
+                        # On place la colonne de Diagnostic au tout début pour une meilleure visibilité
+                        df_results.insert(0, "Diagnostic Result", predictions_list)
 
                         st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
                         
-                        df_results = pd.DataFrame(results)
-                        
-                        if len(results) == 1:
+                        if len(df_input) == 1:
                             st.markdown(f"""
                                 <div class="result-card">
                                     <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
-                                    <h2 style="color: #1A365D; margin: 0;">{results[0]['Diagnostic Result']}</h2>
+                                    <h2 style="color: #1A365D; margin: 0;">{predictions_list[0]}</h2>
                                     <p style="margin-top: 15px; color: #4A5568;">
-                                        The analysis identified <b>{results[0]['Diagnostic Result'].lower()}</b> for the location: <b>{results[0]['Measurement Point (MptDesc)']}</b>.
+                                        The analysis identified <b>{predictions_list[0].lower()}</b> for the location: <b>{df_input.iloc[0]['MptDesc']}</b>.
                                     </p>
                                 </div>
                             """, unsafe_allow_html=True)
@@ -224,7 +223,9 @@ else:
                                     use_container_width=True
                                 )
                             
-                            st.table(df_results)
+                            # Pour éviter de surcharger l'affichage web, on montre un aperçu condensé des résultats
+                            # contenant le Diagnostic, le point de mesure, le RPM et les premières harmoniques.
+                            st.dataframe(df_results, use_container_width=True)
                     else:
                         st.error("Model file not found.")
         except Exception as e:
@@ -240,5 +241,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.11")
+st.sidebar.caption("GIM Maintenance Hub - v3.12")
 st.sidebar.caption("HistGradientBoosting Engine")
