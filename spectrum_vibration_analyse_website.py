@@ -88,7 +88,7 @@ if analysis_mode == "Manual Entry":
     with c2:
         rpm_val = st.number_input("Rotation Speed (RPM)", min_value=0.0, value=1500.0)
 
-    st.markdown('<p class="section-header">Vibration Spectrum Magnitudes (mm/s RMS)</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-header">Vibration Spectrum Magnitudes (In/Sec Pk)</p>', unsafe_allow_html=True)
     cols = st.columns(5)
     harmonic_inputs = []
 
