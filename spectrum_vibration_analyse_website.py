@@ -127,7 +127,6 @@ if analysis_mode == "Manual Entry":
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
     
-    # AJOUT & CORRECTION : Intégration de l'information sur les lignes multiples (Batch Processing)
     with st.expander("📋 Batch Import File Requirements & Validation Specifications", expanded=True):
         st.markdown("""
         * **Supported Formats:** Standard Excel (`.xlsx`) or Comma-Separated Values (`.csv`).
@@ -179,7 +178,11 @@ else:
 
                             predictions_list.append(diag)
 
-                        df_results = df_input.copy()
+                        # MODIFIÉ : On extrait STRICTEMENT les colonnes requises de l'entrée d'origine
+                        # (Toutes les autres colonnes "parasites" ou superflues de l'Excel de l'utilisateur sont balayées)
+                        df_results = df_input[required_columns].copy()
+                        
+                        # On réinjecte le résultat au début (Colonne A)
                         df_results.insert(0, "Diagnostic Result", predictions_list)
 
                         st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
@@ -237,5 +240,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.13")
+st.sidebar.caption("GIM Maintenance Hub - v3.14")
 st.sidebar.caption("HistGradientBoosting Engine")
