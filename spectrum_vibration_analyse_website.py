@@ -88,7 +88,7 @@ if analysis_mode == "Manual Entry":
     with c2:
         rpm_val = st.number_input("Rotation Speed (RPM)", min_value=0.0, value=1500.0)
 
-    st.markdown('<p class="section-header">Vibration Spectrum Magnitudes (In/Sec Pk)</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-header">Vibration Spectrum Magnitudes (mm/s RMS)</p>', unsafe_allow_html=True)
     cols = st.columns(5)
     harmonic_inputs = []
 
@@ -127,9 +127,11 @@ if analysis_mode == "Manual Entry":
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
     
+    # AJOUT & CORRECTION : Intégration de l'information sur les lignes multiples (Batch Processing)
     with st.expander("📋 Batch Import File Requirements & Validation Specifications", expanded=True):
         st.markdown("""
         * **Supported Formats:** Standard Excel (`.xlsx`) or Comma-Separated Values (`.csv`).
+        * **Multi-Row Batch Processing:** A single uploaded file may contain **multiple data entries across several rows**. Consequently, the generated report will display multiple failure mode outputs, with each diagnostic row corresponding exactly to the respective data row uploaded initially.
         * **Column Order Flexibility:** Columns can be arranged in **ANY** order. The system dynamically auto-aligns features using the explicit text headers.
         * **Mandatory Input Columns (Total of 37 required columns):**
             * **`MptDesc`** *(Categorical String)*: Must strictly match pre-defined component names (e.g., `Motor Inboard Axial`, `Pump Outboard Vertical`). Unknown inputs will trigger a validation error without crashing.
@@ -159,7 +161,6 @@ else:
                     if model:
                         predictions_list = []
                         
-                        # Exécution des diagnostics ligne par ligne
                         for i in range(len(df_input)):
                             row_data = df_input.iloc[i]
                             text_mpt = str(row_data['MptDesc']).strip()
@@ -178,10 +179,7 @@ else:
 
                             predictions_list.append(diag)
 
-                        # MODIFIÉ : On intègre directement le résultat dans une copie du tableau d'origine
                         df_results = df_input.copy()
-                        
-                        # On place la colonne de Diagnostic au tout début pour une meilleure visibilité
                         df_results.insert(0, "Diagnostic Result", predictions_list)
 
                         st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
@@ -223,8 +221,6 @@ else:
                                     use_container_width=True
                                 )
                             
-                            # Pour éviter de surcharger l'affichage web, on montre un aperçu condensé des résultats
-                            # contenant le Diagnostic, le point de mesure, le RPM et les premières harmoniques.
                             st.dataframe(df_results, use_container_width=True)
                     else:
                         st.error("Model file not found.")
@@ -241,5 +237,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.12")
+st.sidebar.caption("GIM Maintenance Hub - v3.13")
 st.sidebar.caption("HistGradientBoosting Engine")
