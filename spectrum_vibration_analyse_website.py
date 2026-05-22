@@ -41,7 +41,6 @@ fault_names = {
     4: 'Rotating Looseness', 5: 'Rotor Rub', 6: 'Turbulence', 7: 'Unbalance'
 }
 
-# CORRIGÉ : Ajout de "9X" qui manquait à l'appel
 harmonics_columns = [
     "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", "2X", 
     "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
@@ -123,11 +122,11 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH STRICT VALIDATION
+# 6. MODE B: FILE UPLOAD WITH AUTOMATIC REORDERING
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
-    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column must match the strict system names.")
+    st.info("Requirement: Upload an Excel or CSV file. The columns can be in any order, they will be auto-aligned.")
 
     uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
@@ -141,6 +140,7 @@ else:
             st.markdown('<p class="section-header">Data Preview</p>', unsafe_allow_html=True)
             st.dataframe(df_input.head(5), use_container_width=True)
 
+            # Vérifie uniquement la PRÉSENCE des colonnes, peu importe leur ordre
             missing_cols = [c for c in required_columns if c not in df_input.columns]
             
             if missing_cols:
@@ -157,7 +157,10 @@ else:
                             if text_mpt in measurement_points_mapping:
                                 numeric_mpt = measurement_points_mapping[text_mpt]
                                 
+                                # FIX SÉCURITÉ : On extrait les données directement par leur nom de colonne
                                 features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
+                                
+                                # On force la création du DataFrame dans l'ordre EXACT exigé par le modèle
                                 input_row_df = pd.DataFrame([features], columns=required_columns)
                                 
                                 pred = model.predict(input_row_df)[0]
@@ -230,5 +233,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.8")
+st.sidebar.caption("GIM Maintenance Hub - v3.9")
 st.sidebar.caption("HistGradientBoosting Engine")
