@@ -8,7 +8,6 @@ import joblib
 # ==========================================
 st.set_page_config(page_title="Vibration Diagnostic System", layout="wide")
 
-# Minimalist corporate/engineering CSS
 st.markdown("""
     <style>
     .reportview-container { background: #F5F7F9; }
@@ -22,7 +21,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. TECHNICAL MAPPINGS
+# 2. TECHNICAL MAPPINGS (1 TO 7 STRICT MATCH)
 # ==========================================
 measurement_points_mapping = {
     "Motor Inboard Axial": 1, "Motor Inboard Horizontal": 2, "Motor Inboard Horz Peakvue": 3,
@@ -105,8 +104,8 @@ if analysis_mode == "Manual Entry":
             
             pred = model.predict(input_row_df)[0]
             
-            # CORRECTION APPLIQUÉE ICI (Saisie Manuelle)
-            final_id = int(pred) + 1
+            # FIXED: Direct mapping without shifting
+            final_id = int(pred)
             diag = fault_names.get(final_id, "Normal Condition")
             
             st.markdown('<p class="section-header">Analysis Result</p>', unsafe_allow_html=True)
@@ -120,14 +119,14 @@ if analysis_mode == "Manual Entry":
                 </div>
             """, unsafe_allow_html=True)
         else:
-            st.error("Model file not found. Please ensure 'hgb_maintenance_model.joblib' is in the directory.")
+            st.error("Model file not found.")
 
 # ==========================================
 # 6. MODE B: FILE UPLOAD (EXCEL/CSV)
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
-    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column can contain plain text names (spaces at the end are automatically cleared).")
+    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column can contain plain text names.")
 
     uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
@@ -161,8 +160,8 @@ else:
                             
                             pred = model.predict(input_row_df)[0]
                             
-                            # CORRECTION APPLIQUÉE ICI AUSSI (Importation Excel)
-                            final_id = int(pred) + 1
+                            # FIXED: Direct mapping without shifting
+                            final_id = int(pred)
                             diag = fault_names.get(final_id, "Normal Condition")
                             
                             results.append({
@@ -201,5 +200,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.2")
+st.sidebar.caption("GIM Maintenance Hub - v3.3")
 st.sidebar.caption("HistGradientBoosting Engine")
