@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
+import io  # Requis pour la gestion du flux binaire Excel
 
 # ==========================================
 # 1. SETUP & PROFESSIONAL STYLING
@@ -121,7 +122,7 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD (EXCEL/CSV) WITH DOWNLOAD FUNCTION
+# 6. MODE B: FILE UPLOAD (EXCEL/CSV) WITH MULTI-DOWNLOAD
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
@@ -184,16 +185,34 @@ else:
                                 </div>
                             """, unsafe_allow_html=True)
                         else:
-                            # MODIFICATION : Conversion du tableau de résultats en CSV pour le téléchargement
-                            csv_data = df_results.to_csv(index=False).encode('utf-8')
+                            # --- PRÉPARATION DES BOUTONS DE TÉLÉCHARGEMENT CÔTE À CÔTE ---
+                            b_col1, b_col2, _ = st.columns([1, 1, 3]) # Crée des colonnes bien alignées
                             
-                            # Ajout du bouton de téléchargement juste au-dessus du tableau
-                            st.download_button(
-                                label="📥 Download Diagnostic Report (CSV)",
-                                data=csv_data,
-                                file_name="vibration_diagnostic_report.csv",
-                                mime="text/csv"
-                            )
+                            with b_col1:
+                                # Bouton CSV existant
+                                csv_data = df_results.to_csv(index=False).encode('utf-8')
+                                st.download_button(
+                                    label="📥 Download as CSV",
+                                    data=csv_data,
+                                    file_name="vibration_diagnostic_report.csv",
+                                    mime="text/csv",
+                                    use_container_width=True
+                                )
+                                
+                            with b_col2:
+                                # NOUVEAU : Création et bouton de téléchargement Excel (.xlsx)
+                                buffer = io.BytesIO()
+                                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                                    df_results.to_excel(writer, index=False, sheet_name='Diagnostics')
+                                buffer.seek(0)
+                                
+                                st.download_button(
+                                    label="📊 Download as Excel (XLSX)",
+                                    data=buffer,
+                                    file_name="vibration_diagnostic_report.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    use_container_width=True
+                                )
                             
                             st.table(df_results)
                     else:
@@ -211,5 +230,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.5")
+st.sidebar.caption("GIM Maintenance Hub - v3.6")
 st.sidebar.caption("HistGradientBoosting Engine")
