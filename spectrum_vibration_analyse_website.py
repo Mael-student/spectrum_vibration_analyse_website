@@ -93,7 +93,6 @@ if analysis_mode == "Manual Entry":
 
     for i, label in enumerate(harmonics_columns):
         with cols[i % 5]:
-            # MODIFIÉ : format="%.10f" pour autoriser et afficher 10 chiffres après la virgule
             val = st.number_input(label, min_value=0.0, value=0.0, format="%.10f", step=0.0001, key=label)
             harmonic_inputs.append(val)
 
@@ -114,90 +113,4 @@ if analysis_mode == "Manual Entry":
                     <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
                     <h2 style="color: #1A365D; margin: 0;">{diag}</h2>
                     <p style="margin-top: 15px; color: #4A5568;">
-                        The system identified patterns consistent with <b>{diag.lower()}</b> at <b>{selected_point_name}</b>.
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.error("Model file not found.")
-
-# ==========================================
-# 6. MODE B: FILE UPLOAD (EXCEL/CSV)
-# ==========================================
-else:
-    st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
-    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column can contain plain text names.")
-
-    uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
-
-    if uploaded_file is not None:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df_input = pd.read_csv(uploaded_file)
-            else:
-                df_input = pd.read_excel(uploaded_file)
-
-            st.markdown('<p class="section-header">Data Preview</p>', unsafe_allow_html=True)
-            st.dataframe(df_input.head(5), use_container_width=True)
-
-            missing_cols = [c for c in required_columns if c not in df_input.columns]
-            
-            if missing_cols:
-                st.error(f"Invalid file structure. Missing columns: {', '.join(missing_cols)}")
-            else:
-                if st.button("RUN BATCH DIAGNOSTIC"):
-                    if model:
-                        results = []
-                        
-                        for i in range(len(df_input)):
-                            row_data = df_input.iloc[i]
-                            
-                            text_mpt = str(row_data['MptDesc']).strip()
-                            numeric_mpt = measurement_points_mapping.get(text_mpt, 1)
-                            
-                            features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
-                            input_row_df = pd.DataFrame([features], columns=required_columns)
-                            
-                            pred = model.predict(input_row_df)[0]
-                            
-                            final_id = int(pred)
-                            diag = fault_names.get(final_id, "Normal Condition")
-                            
-                            results.append({
-                                "Sample": i + 1,
-                                "Measurement Point (MptDesc)": text_mpt,
-                                "RPM": row_data['RPM'],
-                                "Diagnostic Result": diag
-                            })
-
-                        st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
-                        
-                        if len(results) == 1:
-                            st.markdown(f"""
-                                <div class="result-card">
-                                    <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
-                                    <h2 style="color: #1A365D; margin: 0;">{results[0]['Diagnostic Result']}</h2>
-                                    <p style="margin-top: 15px; color: #4A5568;">
-                                        The analysis identified <b>{results[0]['Diagnostic Result'].lower()}</b> for the location: <b>{results[0]['Measurement Point (MptDesc)']}</b>.
-                                    </p>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.table(pd.DataFrame(results))
-                    else:
-                        st.error("Model file not found.")
-        except Exception as e:
-            st.error(f"An error occurred while processing the file: {e}")
-    else:
-        st.markdown("""
-            <div style="background-color: #FFFFFF; padding: 20px; border: 1px dashed #CBD5E0; color: #718096; text-align: center;">
-                Please upload a dataset to begin the automated batch vibration analysis.
-            </div>
-        """, unsafe_allow_html=True)
-
-# ==========================================
-# 7. FOOTER / SYSTEM INFO
-# ==========================================
-st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.4")
-st.sidebar.caption("HistGradientBoosting Engine")
+                        The system identified patterns consistent with <b>{
