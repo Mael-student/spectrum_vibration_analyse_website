@@ -122,32 +122,22 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH AUTOMATIC REORDERING
+# 6. MODE B: FILE UPLOAD WITH ONLINE DOCUMENTATION
 # ==========================================
 else:
-    # -----------------------------------------------------------------------------------------
-    # 📋 BATCH IMPORT DATA REQUIREMENTS & VALIDATION SPECIFICATIONS (ENGLISH)
-    # -----------------------------------------------------------------------------------------
-    # 1. FILE FORMATS: Supports standard Excel (.xlsx) or Comma-Separated Values (.csv).
-    # 2. COLUMN ORDER OPTIMIZATION: 
-    #    Columns can be arranged in ANY arbitrary order within the uploaded file. 
-    #    The system dynamically maps features using their explicit text headers (keys), 
-    #    bypassing index-based constraints and preventing data misalignment.
-    # 3. MANDATORY INPUT COLUMNS (Total: 37 Columns required):
-    #    - 'MptDesc' (Categorical String): Location/Direction descriptor. Must strictly match 
-    #       pre-defined system strings (e.g., 'Motor Inboard Axial', 'Pump Outboard Vertical').
-    #    - 'RPM' (Numerical Float): Rotational speed context of the machinery.
-    #    - 35 Spectral Harmonics (Numerical Floats): Full-precision vibration magnitudes (mm/s RMS).
-    #      List: "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", 
-    #            "2X", "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
-    #            "6.3X", "7X", "8X", "9X", "9X-30X", "10X", "11.3X", "12X", "13.8X", "14X", "15X", 
-    #            "16X", "30X", "45X", "80X"
-    # 4. EXCEPTION HANDLING: Invalid or misspelled 'MptDesc' inputs are intercepted to block 
-    #    biased predictions, rendering a '❌ Invalid MptDesc' error message directly in the report row.
-    # -----------------------------------------------------------------------------------------
-
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
-    st.info("Requirement: Upload an Excel or CSV file. The columns can be in any order, they will be auto-aligned.")
+    
+    # AJOUT : Spécifications techniques affichées directement dans l'application en anglais
+    with st.expander("📋 Batch Import File Requirements & Validation Specifications", expanded=True):
+        st.markdown("""
+        * **Supported Formats:** Standard Excel (`.xlsx`) or Comma-Separated Values (`.csv`).
+        * **Column Order Flexibility:** Columns can be arranged in **ANY** order. The system dynamically auto-aligns features using the explicit text headers.
+        * **Mandatory Input Columns (Total of 37 required columns):**
+            * **`MptDesc`** *(Categorical String)*: Must strictly match pre-defined component names (e.g., `Motor Inboard Axial`, `Pump Outboard Vertical`). Unknown inputs will trigger a validation error without crashing.
+            * **`RPM`** *(Numerical Float)*: Rotational speed context.
+            * **35 Spectral Harmonics** *(Numerical Floats)*: Full-precision vibration magnitudes (mm/s RMS). 
+              *List: 0.1X-0.8X, 0.33X, 0.38X, 0.48X, 0.5X, 0.8X-1X, 1X, 1.5X, 1.9X, 2X, 2.5X, 3X, 3.5X, 3.84X, 4X, 4.16X, 4.2X, 5X, 5.9X, 6X, 6.3X, 7X, 8X, 9X, 9X-30X, 10X, 11.3X, 12X, 13.8X, 14X, 15X, 16X, 30X, 45X, 80X.*
+        """)
 
     uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
@@ -250,5 +240,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.10")
+st.sidebar.caption("GIM Maintenance Hub - v3.11")
 st.sidebar.caption("HistGradientBoosting Engine")
