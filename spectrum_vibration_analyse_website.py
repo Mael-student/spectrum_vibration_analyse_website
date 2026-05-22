@@ -68,7 +68,6 @@ model = load_model()
 st.markdown('<p class="main-title">Predictive Maintenance & Diagnostic System</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Rotating Machinery Vibration Analysis Engine (HistGradientBoosting)</p>', unsafe_allow_html=True)
 
-# FIXED: Radio buttons are now 100% English
 analysis_mode = st.radio(
     "Select Data Input Method:",
     ["Manual Entry", "Excel / CSV File Upload"],
@@ -105,7 +104,9 @@ if analysis_mode == "Manual Entry":
             input_row_df = pd.DataFrame([features], columns=required_columns)
             
             pred = model.predict(input_row_df)[0]
-            final_id = int(pred) + 1 if pred < 7 else int(pred)
+            
+            # CORRECTION APPLIQUÉE ICI (Saisie Manuelle)
+            final_id = int(pred) + 1
             diag = fault_names.get(final_id, "Normal Condition")
             
             st.markdown('<p class="section-header">Analysis Result</p>', unsafe_allow_html=True)
@@ -159,7 +160,9 @@ else:
                             input_row_df = pd.DataFrame([features], columns=required_columns)
                             
                             pred = model.predict(input_row_df)[0]
-                            final_id = int(pred) + 1 if pred < 7 else int(pred)
+                            
+                            # CORRECTION APPLIQUÉE ICI AUSSI (Importation Excel)
+                            final_id = int(pred) + 1
                             diag = fault_names.get(final_id, "Normal Condition")
                             
                             results.append({
@@ -198,5 +201,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.1")
+st.sidebar.caption("GIM Maintenance Hub - v3.2")
 st.sidebar.caption("HistGradientBoosting Engine")
