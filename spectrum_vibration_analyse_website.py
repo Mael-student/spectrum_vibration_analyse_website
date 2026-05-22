@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
-import io  # Requis pour la gestion du flux binaire Excel
+import io
 
 # ==========================================
 # 1. SETUP & PROFESSIONAL STYLING
@@ -44,7 +44,7 @@ fault_names = {
 harmonics_columns = [
     "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", "2X", 
     "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
-    "6.3X", "7X", "8X", "9X", "9X-30X", "10X", "11.3X", "12X", "13.8X", "14X", 
+    "6.3X", "7X", "8X", "9X-30X", "10X", "11.3X", "12X", "13.8X", "14X", 
     "15X", "16X", "30X", "45X", "80X"
 ]
 
@@ -122,11 +122,11 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD (EXCEL/CSV) WITH MULTI-DOWNLOAD
+# 6. MODE B: FILE UPLOAD WITH STRICT VALIDATION
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
-    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column can contain plain text names.")
+    st.info("Requirement: Upload an Excel or CSV file. The 'MptDesc' column must match the strict system names.")
 
     uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
@@ -151,18 +151,22 @@ else:
                         
                         for i in range(len(df_input)):
                             row_data = df_input.iloc[i]
-                            
                             text_mpt = str(row_data['MptDesc']).strip()
-                            numeric_mpt = measurement_points_mapping.get(text_mpt, 1)
                             
-                            features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
-                            input_row_df = pd.DataFrame([features], columns=required_columns)
-                            
-                            pred = model.predict(input_row_df)[0]
-                            
-                            final_id = int(pred)
-                            diag = fault_names.get(final_id, "Normal Condition")
-                            
+                            # MODIFIÉ : Vérification stricte de la présence du texte dans la liste
+                            if text_mpt in measurement_points_mapping:
+                                numeric_mpt = measurement_points_mapping[text_mpt]
+                                
+                                features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
+                                input_row_df = pd.DataFrame([features], columns=required_columns)
+                                
+                                pred = model.predict(input_row_df)[0]
+                                final_id = int(pred)
+                                diag = fault_names.get(final_id, "Normal Condition")
+                            else:
+                                # Avertissement injecté directement si le nom n'est pas reconnu
+                                diag = "❌ Invalid MptDesc / Direction"
+
                             results.append({
                                 "Sample": i + 1,
                                 "Measurement Point (MptDesc)": text_mpt,
@@ -185,11 +189,9 @@ else:
                                 </div>
                             """, unsafe_allow_html=True)
                         else:
-                            # --- PRÉPARATION DES BOUTONS DE TÉLÉCHARGEMENT CÔTE À CÔTE ---
-                            b_col1, b_col2, _ = st.columns([1, 1, 3]) # Crée des colonnes bien alignées
+                            b_col1, b_col2, _ = st.columns([1, 1, 3])
                             
                             with b_col1:
-                                # Bouton CSV existant
                                 csv_data = df_results.to_csv(index=False).encode('utf-8')
                                 st.download_button(
                                     label="📥 Download as CSV",
@@ -200,7 +202,6 @@ else:
                                 )
                                 
                             with b_col2:
-                                # NOUVEAU : Création et bouton de téléchargement Excel (.xlsx)
                                 buffer = io.BytesIO()
                                 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
                                     df_results.to_excel(writer, index=False, sheet_name='Diagnostics')
@@ -230,5 +231,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.6")
+st.sidebar.caption("GIM Maintenance Hub - v3.7")
 st.sidebar.caption("HistGradientBoosting Engine")
