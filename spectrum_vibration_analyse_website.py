@@ -93,7 +93,8 @@ if analysis_mode == "Manual Entry":
 
     for i, label in enumerate(harmonics_columns):
         with cols[i % 5]:
-            val = st.number_input(label, min_value=0.0, value=0.0, format="%.4f", key=label)
+            # MODIFIÉ : format="%.10f" pour autoriser et afficher 10 chiffres après la virgule
+            val = st.number_input(label, min_value=0.0, value=0.0, format="%.10f", step=0.0001, key=label)
             harmonic_inputs.append(val)
 
     st.markdown("---")
@@ -104,7 +105,6 @@ if analysis_mode == "Manual Entry":
             
             pred = model.predict(input_row_df)[0]
             
-            # FIXED: Direct mapping without shifting
             final_id = int(pred)
             diag = fault_names.get(final_id, "Normal Condition")
             
@@ -160,7 +160,6 @@ else:
                             
                             pred = model.predict(input_row_df)[0]
                             
-                            # FIXED: Direct mapping without shifting
                             final_id = int(pred)
                             diag = fault_names.get(final_id, "Normal Condition")
                             
@@ -200,5 +199,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.3")
+st.sidebar.caption("GIM Maintenance Hub - v3.4")
 st.sidebar.caption("HistGradientBoosting Engine")
