@@ -125,6 +125,27 @@ if analysis_mode == "Manual Entry":
 # 6. MODE B: FILE UPLOAD WITH AUTOMATIC REORDERING
 # ==========================================
 else:
+    # -----------------------------------------------------------------------------------------
+    # 📋 BATCH IMPORT DATA REQUIREMENTS & VALIDATION SPECIFICATIONS (ENGLISH)
+    # -----------------------------------------------------------------------------------------
+    # 1. FILE FORMATS: Supports standard Excel (.xlsx) or Comma-Separated Values (.csv).
+    # 2. COLUMN ORDER OPTIMIZATION: 
+    #    Columns can be arranged in ANY arbitrary order within the uploaded file. 
+    #    The system dynamically maps features using their explicit text headers (keys), 
+    #    bypassing index-based constraints and preventing data misalignment.
+    # 3. MANDATORY INPUT COLUMNS (Total: 37 Columns required):
+    #    - 'MptDesc' (Categorical String): Location/Direction descriptor. Must strictly match 
+    #       pre-defined system strings (e.g., 'Motor Inboard Axial', 'Pump Outboard Vertical').
+    #    - 'RPM' (Numerical Float): Rotational speed context of the machinery.
+    #    - 35 Spectral Harmonics (Numerical Floats): Full-precision vibration magnitudes (mm/s RMS).
+    #      List: "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", 
+    #            "2X", "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
+    #            "6.3X", "7X", "8X", "9X", "9X-30X", "10X", "11.3X", "12X", "13.8X", "14X", "15X", 
+    #            "16X", "30X", "45X", "80X"
+    # 4. EXCEPTION HANDLING: Invalid or misspelled 'MptDesc' inputs are intercepted to block 
+    #    biased predictions, rendering a '❌ Invalid MptDesc' error message directly in the report row.
+    # -----------------------------------------------------------------------------------------
+
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
     st.info("Requirement: Upload an Excel or CSV file. The columns can be in any order, they will be auto-aligned.")
 
@@ -140,7 +161,6 @@ else:
             st.markdown('<p class="section-header">Data Preview</p>', unsafe_allow_html=True)
             st.dataframe(df_input.head(5), use_container_width=True)
 
-            # Vérifie uniquement la PRÉSENCE des colonnes, peu importe leur ordre
             missing_cols = [c for c in required_columns if c not in df_input.columns]
             
             if missing_cols:
@@ -157,10 +177,7 @@ else:
                             if text_mpt in measurement_points_mapping:
                                 numeric_mpt = measurement_points_mapping[text_mpt]
                                 
-                                # FIX SÉCURITÉ : On extrait les données directement par leur nom de colonne
                                 features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
-                                
-                                # On force la création du DataFrame dans l'ordre EXACT exigé par le modèle
                                 input_row_df = pd.DataFrame([features], columns=required_columns)
                                 
                                 pred = model.predict(input_row_df)[0]
@@ -233,5 +250,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.9")
+st.sidebar.caption("GIM Maintenance Hub - v3.10")
 st.sidebar.caption("HistGradientBoosting Engine")
