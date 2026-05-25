@@ -135,7 +135,7 @@ else:
         * **Mandatory Input Columns (Total of 37 required columns):**
             * **`MptDesc`** *(Categorical String)*: Must strictly match pre-defined component names (e.g., `Motor Inboard Axial`, `Pump Outboard Vertical`). Unknown inputs will trigger a validation error without crashing.
             * **`RPM`** *(Numerical Float)*: Rotational speed context.
-            * **35 Spectral Harmonics** *(Numerical Floats)*: Full-precision vibration magnitudes (mm/s RMS). 
+            * **35 Spectral Harmonics** *(Numerical Floats)*: Full-precision vibration magnitudes (In/Sec Pk). 
               *List: 0.1X-0.8X, 0.33X, 0.38X, 0.48X, 0.5X, 0.8X-1X, 1X, 1.5X, 1.9X, 2X, 2.5X, 3X, 3.5X, 3.84X, 4X, 4.16X, 4.2X, 5X, 5.9X, 6X, 6.3X, 7X, 8X, 9X, 9X-30X, 10X, 11.3X, 12X, 13.8X, 14X, 15X, 16X, 30X, 45X, 80X.*
         """)
 
