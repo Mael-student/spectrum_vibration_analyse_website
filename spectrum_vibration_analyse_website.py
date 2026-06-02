@@ -133,7 +133,7 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH MULTI-SHEET EXCEL (GLOBAL SUMMARY TABS)
+# 6. MODE B: FILE UPLOAD WITH MULTI-SHEET EXCEL (CORRECTED SUMMARY LOGIC)
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
@@ -171,9 +171,11 @@ else:
                     if model:
                         predictions_list = []
                         all_general_confidences = []
-                        all_probabilities = {uid: [] for uid in model.classes_}
                         
-                        # Sequential processing (row order is 100% preserved)
+                        # Dictionnaire pour regrouper les scores de confiance obtenus pour chaque panne spécifique
+                        fault_confidence_groups = {fault_names[uid]: [] for uid in model.classes_}
+                        
+                        # Traitement ligne par ligne (l'ordre des lignes est conservé à 100%)
                         for i in range(len(df_input)):
                             row_data = df_input.iloc[i]
                             text_mpt = str(row_data['MptDesc']).strip()
@@ -190,40 +192,46 @@ else:
                                 diag = fault_names.get(final_id, "Normal Condition")
                                 conf_gen = np.max(probabilities) * 100
                                 
-                                for idx, uid in enumerate(model.classes_):
-                                    all_probabilities[uid].append(conf_gen if final_id == uid else probabilities[idx] * 100)
+                                # On associe le score obtenu à la panne correspondante
+                                if diag in fault_confidence_groups:
+                                    fault_confidence_groups[diag].append(conf_gen)
                             else:
                                 diag = "❌ Invalid MptDesc"
                                 conf_gen = 0.0
-                                for uid in model.classes_:
-                                    all_probabilities[uid].append(0.0)
 
                             predictions_list.append(diag)
                             all_general_confidences.append(conf_gen)
 
                         # =========================================================
-                        # SHEET 1: MAIN RESULTS (DIAGNOSTICS - ORDER PRESERVED)
+                        # SHEET 1 : DATAFRAME PRINCIPAL (LIGNES DANS L'ORDRE D'ENTRÉE)
                         # =========================================================
                         df_main_results = df_input[required_columns].copy()
                         df_main_results.insert(0, "Diagnostic Result", predictions_list)
 
                         # =========================================================
-                        # SHEET 2: GLOBAL SUMMARY TABLE (AS REQUESTED)
+                        # SHEET 2 : TABLEAU DE SYNTHÈSE GLOBALE CORRIGÉ
                         # =========================================================
-                        # Calculate mean confidence for each fault mode across all inputs
                         summary_data = []
                         for uid in model.classes_:
-                            mean_val = np.mean(all_probabilities[uid])
+                            f_name = fault_names[uid]
+                            scores = fault_confidence_groups[f_name]
+                            
+                            count = len(scores)
+                            # Si la panne n'a jamais été détectée sur le lot, le score est de 0%
+                            mean_confidence = np.mean(scores) if count > 0 else 0.0
+                            
                             summary_data.append({
-                                "Metric Type": f"Confidence Score: {fault_names[uid]}",
-                                "Global Value (%)": round(mean_val, 2)
+                                "Analysis Metric": f"Average Confidence: {f_name}",
+                                "Detected Instances Count": count,
+                                "Value (%)": round(mean_confidence, 2)
                             })
                         
-                        # Calculate the requested General Confidence Score row
-                        global_general_conf = np.mean(all_general_confidences)
+                        # Calcul de la ligne finale demandée : Score de confiance général global
+                        global_general_conf = np.mean(all_general_confidences) if len(all_general_confidences) > 0 else 0.0
                         summary_data.append({
-                            "Metric Type": "GENERAL CONFIDENCE SCORE (OVERALL LOT)",
-                            "Global Value (%)": round(global_general_conf, 2)
+                            "Analysis Metric": "TOTAL GENERAL CONFIDENCE SCORE (OVERALL LOT)",
+                            "Detected Instances Count": len(df_input),
+                            "Value (%)": round(global_general_conf, 2)
                         })
                         
                         df_global_summary = pd.DataFrame(summary_data)
@@ -247,7 +255,6 @@ else:
                             b_col1, b_col2, _ = st.columns([1, 1, 3])
                             
                             with b_col1:
-                                # For CSV output, we download the clean main table
                                 csv_data = df_main_results.to_csv(index=False).encode('utf-8')
                                 st.download_button(
                                     label="📥 Download Diagnostics (CSV)",
@@ -258,12 +265,12 @@ else:
                                 )
                                 
                             with b_col2:
-                                # MULTI-SHEET EXCEL GENERATION
+                                # CONFIGURATION MULTI-ONGLETS EXCEL
                                 buffer = io.BytesIO()
                                 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                                    # Sheet 1: Main standard data table
+                                    # Onglet 1 : Tableau ordonné propre sans colonnes parasites
                                     df_main_results.to_excel(writer, index=False, sheet_name='Diagnostics')
-                                    # Sheet 2: The global KPI summary table requested
+                                    # Onglet 2 : Le tableau récapitulatif corrigé (7 pannes + Score Général)
                                     df_global_summary.to_excel(writer, index=False, sheet_name='Global Summary')
                                 buffer.seek(0)
                                 
@@ -275,9 +282,9 @@ else:
                                     use_container_width=True
                                 )
                             
-                            # On-screen preview with native Streamlit tabs
+                            # Aperçu Streamlit avec des onglets à l'écran
                             st.markdown("### 🖥️ On-Screen Report Preview")
-                            tab1, tab2 = st.tabs(["📊 Main Diagnostics Table", "🎯 Lot Confidence Summary"])
+                            tab1, tab2 = st.tabs(["📊 Main Diagnostics Table (Ordered)", "🎯 Lot Confidence Summary"])
                             with tab1:
                                 st.dataframe(df_main_results, use_container_width=True)
                             with tab2:
@@ -297,5 +304,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.18")
+st.sidebar.caption("GIM Maintenance Hub - v3.19")
 st.sidebar.caption("HistGradientBoosting Engine")
