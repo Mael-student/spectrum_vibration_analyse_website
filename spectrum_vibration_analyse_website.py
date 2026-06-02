@@ -290,7 +290,13 @@ else:
     * **Dimensionality:** **37 input parameters**:
         * `1` textual contextual variable (`MptDesc` converted to numerical IDs from 1 to 26).
         * `1` kinematic operational variable (rotational speed in `RPM`).
-        * `35` spectral variables (physical amplitudes measured in *In/Sec Pk* over specific frequency bands from `0.1X` to `80X`).
+        * `35` spectral variables (physical amplitudes measured in *In/Sec Pk* over specific frequency bands).
+    
+    **Complete List of the 35 Target Spectral Amplitudes:**
+    * **Sub-synchronous & Sync Bands:** `0.1X-0.8X`, `0.33X`, `0.38X`, `0.48X`, `0.5X`, `0.8X-1X`, `1X`
+    * **Low-Intermediate Harmonics:** `1.5X`, `1.9X`, `2X`, `2.5X`, `3X`, `3.5X`, `3.84X`, `4X`, `4.16X`, `4.2X`, `5X`
+    * **Intermediate-High Harmonics:** `5.9X`, `6X`, `6.3X`, `7X`, `8X`, `9X`, `9X-30X`, `10X`, `11.3X`, `12X`, `13.8X`, `14X`, `15X`, `16X`
+    * **Very High Frequency Bands:** `30X`, `45X`, `80X`
     """)
 
     # --- c) MODEL ARCHITECTURE ---
@@ -361,5 +367,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.80")
+st.sidebar.caption("GIM Maintenance Hub - v3.90")
 st.sidebar.caption("HistGradientBoosting Engine")
