@@ -336,36 +336,10 @@ else:
     }
     df_report = pd.DataFrame(report_data)
     st.dataframe(df_report.set_index("ID"), use_container_width=True)
-    
-    # Raw execution logs
-    st.markdown("#### 💻 Console Execution Logs")
-    st.markdown(f"""
-    <div class="terminal-style">
-        Evaluating Hist Gradient Boosting on the final Test Set...<br>
-        <span class="terminal-highlight">Test Set Accuracy: 82.28%</span><br>
-        -----------------------------------------------------------------<br>
-        Final Test Set Classification Report (Hist Gradient Boosting):<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;precision&nbsp;&nbsp;&nbsp;&nbsp;recall&nbsp;&nbsp;f1-score&nbsp;&nbsp;&nbsp;support<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.80&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.50&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.62&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.93&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.80&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;15<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.86&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.87&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;27<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;accuracy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
-        &nbsp;&nbsp;&nbsp;macro avg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.85&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.87&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.85&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
-        weighted avg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.83&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.81&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
-        -----------------------------------------------------------------<br>
-        Generating stylized Excel file: Hist_Gradient_Boosting_Test_Predictions.xlsx...<br>
-        <span class="terminal-highlight">Success! Hist Gradient Boosting report generated and saved to your project directory.</span><br>
-        =================================================================
-    </div>
-    """, unsafe_allow_html=True)
 
 # ==========================================
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.90")
+st.sidebar.caption("GIM Maintenance Hub - v4.00")
 st.sidebar.caption("HistGradientBoosting Engine")
