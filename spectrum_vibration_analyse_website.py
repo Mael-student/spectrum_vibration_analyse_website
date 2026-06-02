@@ -267,7 +267,7 @@ if st.session_state["current_page"] == "diagnostic":
                 st.error(f"An error occurred while processing the file: {e}")
 
 # ==========================================
-# PAGE B: TECHNICAL DOCUMENTATION (VRAIS SCORES)
+# PAGE B: TECHNICAL DOCUMENTATION
 # ==========================================
 else:
     st.markdown('<p class="main-title">📖 Model Documentation & Technical Specs</p>', unsafe_allow_html=True)
@@ -286,7 +286,7 @@ else:
         * `35` variables spectrales (les amplitudes physiques mesurées en *In/Sec Pk* sur des bandes fréquentielles de `0.1X` à `80X`).
     """)
     
-    # --- SECTION 2: METRICS (TES INFOS DE CLASSIFICATION) ---
+    # --- SECTION 2: METRICS ---
     st.markdown('<p class="section-header">2. Évaluation des Performances sur le Jeu de Test Final</p>', unsafe_allow_html=True)
     st.markdown("Voici les indicateurs généraux calculés lors de l'évaluation sur le lot d'évaluation externe (*Test Set*) :")
     
@@ -300,7 +300,6 @@ else:
         
     st.markdown("#### 📋 Classification Report Détaillé par Panne")
     
-    # Création du DataFrame de ton Classification Report pour un affichage ultra-pro
     report_data = {
         "ID": [1, 2, 3, 4, 5, 6, 7],
         "Failure Mode (Nom de la panne)": [
@@ -309,13 +308,13 @@ else:
         ],
         "Precision": [1.00, 0.80, 0.75, 0.82, 1.00, 0.70, 0.86],
         "Recall": [1.00, 1.00, 0.75, 0.50, 1.00, 0.93, 0.89],
-        "F1-Score": [1.00, 0.89, 0.75, 0.62, 1.00, 0.80, 0.87],
+        "F1-Score": [1.00, 0.75, 0.75, 0.62, 1.00, 0.80, 0.87],
         "Support (Lignes de Test)": [6, 4, 4, 18, 5, 15, 27]
     }
     df_report = pd.DataFrame(report_data)
     st.dataframe(df_report.set_index("ID"), use_container_width=True)
     
-    # Logs d'exécution de la console d'entraînement
+    # Logs d'exécution bruts
     st.markdown("#### 💻 Console Execution Logs")
     st.markdown(f"""
     <div class="terminal-style">
@@ -341,18 +340,16 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # --- SECTION 3: LIMITS ---
-    st.markdown('<p class="section-header">3. Limites du Modèle & Frontières Applicatives</p>', unsafe_allow_html=True)
-    st.warning("""
-    **Analyse des points critiques (Idéal pour les questions du jury) :**
-    1. **Sensibilité au Desserrage Élastique (Classe 4) :** On remarque que la classe 4 (*Rotating Looseness*) possède un *Recall* plus bas (0.50). Cela indique que le modèle a tendance à rater une partie de ces pannes en les confondant avec des bruits de turbulence basse fréquence, ce qui constitue un axe d'amélioration futur évident (ex: ajout de capteurs de phase).
-    2. **Excellence sur les Axes (Classes 1 & 5) :** Le modèle obtient un score parfait de **100% (F1-score: 1.00)** sur le *Désalignement Angulaire* (1) et le *Frottement de Rotor* (5), prouvant que leurs signatures fréquentielles sont hautement discriminantes sur ces pompes.
-    3. **Restriction Technologique :** Ce modèle est ajusté aux impédances et comportements mécaniques des **pompes à injection d'eau**. Il ne doit pas être appliqué sur des compresseurs ou turbines sans réentraînement complet.
+    # --- SECTION 3: REQUIRING DESC ---
+    st.markdown('<p class="section-header">3. Spécifications techniques d\'utilisation</p>', unsafe_allow_html=True)
+    st.info("""
+    * **Dépendance aux Descripteurs :** L'application exige impérativement la présence des 35 harmoniques cibles. Un spectre vibratoire brut non-binné ne peut pas être lu directement.
+    * **Gamme de vitesse (RPM) :** L'exactitude des résultats dépend de la conformité opérationnelle des régimes de rotation saisis par rapport aux plages de fonctionnement encadrées dans le jeu de données d'apprentissage.
     """)
 
 # ==========================================
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.40")
+st.sidebar.caption("GIM Maintenance Hub - v3.45")
 st.sidebar.caption("HistGradientBoosting Engine")
