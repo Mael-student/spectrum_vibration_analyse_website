@@ -340,9 +340,10 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # --- SECTION 3: REQUIRING DESC ---
+    # --- SECTION 3: LIMITS ---
     st.markdown('<p class="section-header">3. Spécifications techniques d\'utilisation</p>', unsafe_allow_html=True)
     st.info("""
+    * **Restriction Technologique :** Ce modèle est strictement limité et ajusté aux impédances et comportements mécaniques des **pompes à injection d'eau**.
     * **Dépendance aux Descripteurs :** L'application exige impérativement la présence des 35 harmoniques cibles. Un spectre vibratoire brut non-binné ne peut pas être lu directement.
     * **Gamme de vitesse (RPM) :** L'exactitude des résultats dépend de la conformité opérationnelle des régimes de rotation saisis par rapport aux plages de fonctionnement encadrées dans le jeu de données d'apprentissage.
     """)
@@ -351,5 +352,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.45")
+st.sidebar.caption("GIM Maintenance Hub - v3.50")
 st.sidebar.caption("HistGradientBoosting Engine")
