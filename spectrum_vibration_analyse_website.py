@@ -273,21 +273,38 @@ else:
     st.markdown('<p class="main-title">📖 Model Documentation & Technical Specs</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Scope of application, architecture, and real performance metrics obtained during test phase</p>', unsafe_allow_html=True)
     
-    # --- SECTION 1: ARCHITECTURE ---
-    st.markdown('<p class="section-header">1. Model Description & Baseline Dataset</p>', unsafe_allow_html=True)
+    # --- a) MODEL LIMITATIONS ---
+    st.markdown('<p class="section-header">a) Technical Specifications & Model Limitations</p>', unsafe_allow_html=True)
+    st.info("""
+    * **Technological Restriction:** This model is strictly limited and tuned to the specific mechanical impedance and behavioral dynamics of **water injection pumps**.
+    * **Descriptor Dependency:** The application strictly requires the presence of all 35 target harmonics. Raw, un-binned vibration frequency spectrums cannot be processed directly.
+    * **Speed Range (RPM):** The accuracy of the results heavily depends on the operational conformity of the inputted rotational speeds relative to the limits established in the baseline training dataset.
+    """)
+
+    # --- b) DATASET DETAILS ---
+    st.markdown('<p class="section-header">b) Dataset Details</p>', unsafe_allow_html=True)
     st.markdown("""
-    The artificial intelligence integrated into this application is specifically configured for diagnosing industrial **Water Injection Pumps** using **vibration spectrum analysis**.
+    The baseline archive used to fit and extract features contains high-fidelity engineering parameters:
     
-    * **Algorithm Used:** `HistGradientBoostingClassifier` (Histogram-Based Gradient Boosting Machine).
     * **Baseline Dataset Volume:** **~700 lines** of real historical vibration records.
     * **Dimensionality:** **37 input parameters**:
         * `1` textual contextual variable (`MptDesc` converted to numerical IDs from 1 to 26).
         * `1` kinematic operational variable (rotational speed in `RPM`).
         * `35` spectral variables (physical amplitudes measured in *In/Sec Pk* over specific frequency bands from `0.1X` to `80X`).
     """)
+
+    # --- c) MODEL ARCHITECTURE ---
+    st.markdown('<p class="section-header">c) Model Architecture (How the Model Works)</p>', unsafe_allow_html=True)
+    st.markdown("""
+    The artificial intelligence built into this system utilizes an advanced Machine Learning algorithm called **HistGradientBoosting** (Histogram-Based Gradient Boosting Machine) to compute diagnostics:
     
-    # --- SECTION 2: METRICS ---
-    st.markdown('<p class="section-header">2. Performance Evaluation on the Final Test Set</p>', unsafe_allow_html=True)
+    1. **Data Discretization (Histogram Binning):** Continuous numerical inputs (the 35 vibration amplitudes) are grouped into 256 integer bins. This dramatically reduces memory usage and speeds up tree-building computations.
+    2. **Ensemble of Decision Trees:** The algorithm sequentially builds multiple shallow decision trees. Each subsequent tree is strictly trained to minimize and correct the prediction errors (residuals) made by the previous ones.
+    3. **Pattern Mapping:** By analyzing cross-harmonic interactions (e.g., matching a simultaneous spike at 1X and 2X), the model evaluates the mathematical probability for each of the 7 failure categories and outputs the highest score as the final diagnostic conclusion.
+    """)
+    
+    # --- d) EVALUATION RESULTS ---
+    st.markdown('<p class="section-header">d) Evaluation Results (Final Test Set)</p>', unsafe_allow_html=True)
     st.markdown("Here are the general metrics calculated during evaluation on the external evaluation batch (*Test Set*):")
     
     m1, m2, m3 = st.columns(3)
@@ -340,17 +357,9 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # --- SECTION 3: LIMITS ---
-    st.markdown('<p class="section-header">3. Technical Specifications & Guidelines</p>', unsafe_allow_html=True)
-    st.info("""
-    * **Technological Restriction:** This model is strictly limited and tuned to the specific mechanical impedance and behavioral dynamics of **water injection pumps**.
-    * **Descriptor Dependency:** The application strictly requires the presence of all 35 target harmonics. Raw, un-binned vibration frequency spectrums cannot be processed directly.
-    * **Speed Range (RPM):** The accuracy of the results heavily depends on the operational conformity of the inputted rotational speeds relative to the limits established in the baseline training dataset.
-    """)
-
 # ==========================================
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.60")
+st.sidebar.caption("GIM Maintenance Hub - v3.80")
 st.sidebar.caption("HistGradientBoosting Engine")
