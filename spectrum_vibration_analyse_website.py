@@ -271,50 +271,50 @@ if st.session_state["current_page"] == "diagnostic":
 # ==========================================
 else:
     st.markdown('<p class="main-title">📖 Model Documentation & Technical Specs</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Périmètre d\'application, architecture et performances réelles obtenues lors des tests</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Scope of application, architecture, and real performance metrics obtained during test phase</p>', unsafe_allow_html=True)
     
     # --- SECTION 1: ARCHITECTURE ---
-    st.markdown('<p class="section-header">1. Description du Modèle & Jeu de Données</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-header">1. Model Description & Baseline Dataset</p>', unsafe_allow_html=True)
     st.markdown("""
-    L'intelligence artificielle intégrée à cette application est spécifiquement paramétrée pour le diagnostic des **Pompes à Injection d'Eau** industrielles par **analyse de spectres vibratoires**.
+    The artificial intelligence integrated into this application is specifically configured for diagnosing industrial **Water Injection Pumps** using **vibration spectrum analysis**.
     
-    * **Algorithme utilisé :** `HistGradientBoostingClassifier` (Histogram-Based Gradient Boosting Machine).
-    * **Volume du Dataset de Base :** **~700 lignes** d'enregistrements vibratoires historiques réels.
-    * **Dimensionnalité :** **37 paramètres** d'entrée :
-        * `1` variable contextuelle textuelle (`MptDesc` convertie en ID numérique de 1 à 26).
-        * `1` variable opérationnelle cinématique (vitesse de rotation en `RPM`).
-        * `35` variables spectrales (les amplitudes physiques mesurées en *In/Sec Pk* sur des bandes fréquentielles de `0.1X` à `80X`).
+    * **Algorithm Used:** `HistGradientBoostingClassifier` (Histogram-Based Gradient Boosting Machine).
+    * **Baseline Dataset Volume:** **~700 lines** of real historical vibration records.
+    * **Dimensionality:** **37 input parameters**:
+        * `1` textual contextual variable (`MptDesc` converted to numerical IDs from 1 to 26).
+        * `1` kinematic operational variable (rotational speed in `RPM`).
+        * `35` spectral variables (physical amplitudes measured in *In/Sec Pk* over specific frequency bands from `0.1X` to `80X`).
     """)
     
     # --- SECTION 2: METRICS ---
-    st.markdown('<p class="section-header">2. Évaluation des Performances sur le Jeu de Test Final</p>', unsafe_allow_html=True)
-    st.markdown("Voici les indicateurs généraux calculés lors de l'évaluation sur le lot d'évaluation externe (*Test Set*) :")
+    st.markdown('<p class="section-header">2. Performance Evaluation on the Final Test Set</p>', unsafe_allow_html=True)
+    st.markdown("Here are the general metrics calculated during evaluation on the external evaluation batch (*Test Set*):")
     
     m1, m2, m3 = st.columns(3)
     with m1:
         st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">TEST SET ACCURACY</p><h2 style="margin:0;color:#2B6CB0;">82.28%</h2></div>', unsafe_allow_html=True)
     with m2:
-        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">VOLUME DE TEST (SUPPORT)</p><h2 style="margin:0;color:#2B6CB0;">79 Lignes</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">TEST VOLUME (SUPPORT)</p><h2 style="margin:0;color:#2B6CB0;">79 Rows</h2></div>', unsafe_allow_html=True)
     with m3:
         st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">MACRO AVG F1-SCORE</p><h2 style="margin:0;color:#2B6CB0;">0.85</h2></div>', unsafe_allow_html=True)
         
-    st.markdown("#### 📋 Classification Report Détaillé par Panne")
+    st.markdown("#### 📋 Detailed Classification Report by Failure Mode")
     
     report_data = {
         "ID": [1, 2, 3, 4, 5, 6, 7],
-        "Failure Mode (Nom de la panne)": [
+        "Failure Mode Name": [
             "Angular Misalignment (1)", "Ball Defect (2)", "Parallel Misalignment (3)", 
             "Rotating Looseness (4)", "Rotor Rub (5)", "Turbulence (6)", "Unbalance (7)"
         ],
         "Precision": [1.00, 0.80, 0.75, 0.82, 1.00, 0.70, 0.86],
         "Recall": [1.00, 1.00, 0.75, 0.50, 1.00, 0.93, 0.89],
         "F1-Score": [1.00, 0.75, 0.75, 0.62, 1.00, 0.80, 0.87],
-        "Support (Lignes de Test)": [6, 4, 4, 18, 5, 15, 27]
+        "Support (Test Rows)": [6, 4, 4, 18, 5, 15, 27]
     }
     df_report = pd.DataFrame(report_data)
     st.dataframe(df_report.set_index("ID"), use_container_width=True)
     
-    # Logs d'exécution bruts
+    # Raw execution logs
     st.markdown("#### 💻 Console Execution Logs")
     st.markdown(f"""
     <div class="terminal-style">
@@ -341,16 +341,16 @@ else:
     """, unsafe_allow_html=True)
 
     # --- SECTION 3: LIMITS ---
-    st.markdown('<p class="section-header">3. Spécifications techniques d\'utilisation</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-header">3. Technical Specifications & Guidelines</p>', unsafe_allow_html=True)
     st.info("""
-    * **Restriction Technologique :** Ce modèle est strictement limité et ajusté aux impédances et comportements mécaniques des **pompes à injection d'eau**.
-    * **Dépendance aux Descripteurs :** L'application exige impérativement la présence des 35 harmoniques cibles. Un spectre vibratoire brut non-binné ne peut pas être lu directement.
-    * **Gamme de vitesse (RPM) :** L'exactitude des résultats dépend de la conformité opérationnelle des régimes de rotation saisis par rapport aux plages de fonctionnement encadrées dans le jeu de données d'apprentissage.
+    * **Technological Restriction:** This model is strictly limited and tuned to the specific mechanical impedance and behavioral dynamics of **water injection pumps**.
+    * **Descriptor Dependency:** The application strictly requires the presence of all 35 target harmonics. Raw, un-binned vibration frequency spectrums cannot be processed directly.
+    * **Speed Range (RPM):** The accuracy of the results heavily depends on the operational conformity of the inputted rotational speeds relative to the limits established in the baseline training dataset.
     """)
 
 # ==========================================
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.50")
+st.sidebar.caption("GIM Maintenance Hub - v3.60")
 st.sidebar.caption("HistGradientBoosting Engine")
