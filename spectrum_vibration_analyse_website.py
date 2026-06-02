@@ -133,7 +133,7 @@ if analysis_mode == "Manual Entry":
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH MULTI-SHEET EXCEL
+# 6. MODE B: FILE UPLOAD WITH MULTI-SHEET EXCEL (GLOBAL SUMMARY TABS)
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
@@ -170,8 +170,8 @@ else:
                 if st.button("RUN BATCH DIAGNOSTIC"):
                     if model:
                         predictions_list = []
-                        general_conf_list = []
-                        fault_prob_lists = {uid: [] for uid in model.classes_}
+                        all_general_confidences = []
+                        all_probabilities = {uid: [] for uid in model.classes_}
                         
                         # Sequential processing (row order is 100% preserved)
                         for i in range(len(df_input)):
@@ -191,35 +191,42 @@ else:
                                 conf_gen = np.max(probabilities) * 100
                                 
                                 for idx, uid in enumerate(model.classes_):
-                                    fault_prob_lists[uid].append(round(probabilities[idx] * 100, 2))
+                                    all_probabilities[uid].append(conf_gen if final_id == uid else probabilities[idx] * 100)
                             else:
                                 diag = "❌ Invalid MptDesc"
                                 conf_gen = 0.0
                                 for uid in model.classes_:
-                                    fault_prob_lists[uid].append(0.0)
+                                    all_probabilities[uid].append(0.0)
 
                             predictions_list.append(diag)
-                            general_conf_list.append(round(conf_gen, 2))
+                            all_general_confidences.append(conf_gen)
 
                         # =========================================================
-                        # SHEET 1: MAIN RESULTS DATAFRAME (DIAGNOSTICS)
+                        # SHEET 1: MAIN RESULTS (DIAGNOSTICS - ORDER PRESERVED)
                         # =========================================================
                         df_main_results = df_input[required_columns].copy()
                         df_main_results.insert(0, "Diagnostic Result", predictions_list)
 
                         # =========================================================
-                        # SHEET 2: SEPARATE CONFIDENCE SCORES MATRIX
+                        # SHEET 2: GLOBAL SUMMARY TABLE (AS REQUESTED)
                         # =========================================================
-                        df_confidence_sheet = pd.DataFrame({
-                            "MptDesc": df_input["MptDesc"],
-                            "RPM": df_input["RPM"],
-                            "Assigned Diagnostic": predictions_list,
-                            "Confidence Score (%)": general_conf_list
-                        })
-                        # Dynamically add individual fault probability columns
+                        # Calculate mean confidence for each fault mode across all inputs
+                        summary_data = []
                         for uid in model.classes_:
-                            col_title = f"Prob: {fault_names[uid]} (%)"
-                            df_confidence_sheet[col_title] = fault_prob_lists[uid]
+                            mean_val = np.mean(all_probabilities[uid])
+                            summary_data.append({
+                                "Metric Type": f"Confidence Score: {fault_names[uid]}",
+                                "Global Value (%)": round(mean_val, 2)
+                            })
+                        
+                        # Calculate the requested General Confidence Score row
+                        global_general_conf = np.mean(all_general_confidences)
+                        summary_data.append({
+                            "Metric Type": "GENERAL CONFIDENCE SCORE (OVERALL LOT)",
+                            "Global Value (%)": round(global_general_conf, 2)
+                        })
+                        
+                        df_global_summary = pd.DataFrame(summary_data)
 
                         st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
                         
@@ -229,7 +236,7 @@ else:
                                     <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
                                     <h2 style="color: #1A365D; margin: 0;">{predictions_list[0]}</h2>
                                     <p style="margin-top: 10px; font-size: 18px; color: #2B6CB0; font-weight: bold;">
-                                        Confidence: {general_conf_list[0]}%
+                                        Confidence: {all_general_confidences[0]:.2f}%
                                     </p>
                                     <p style="margin-top: 15px; color: #4A5568;">
                                         The analysis identified <b>{predictions_list[0].lower()}</b> for the location: <b>{df_input.iloc[0]['MptDesc']}</b>.
@@ -240,12 +247,10 @@ else:
                             b_col1, b_col2, _ = st.columns([1, 1, 3])
                             
                             with b_col1:
-                                # For CSV output, we keep the overall score alongside the main table since CSV has no tabs
-                                df_csv = df_main_results.copy()
-                                df_csv.insert(1, "Confidence Score (%)", general_conf_list)
-                                csv_data = df_csv.to_csv(index=False).encode('utf-8')
+                                # For CSV output, we download the clean main table
+                                csv_data = df_main_results.to_csv(index=False).encode('utf-8')
                                 st.download_button(
-                                    label="📥 Download as CSV",
+                                    label="📥 Download Diagnostics (CSV)",
                                     data=csv_data,
                                     file_name="vibration_diagnostic_report.csv",
                                     mime="text/csv",
@@ -256,10 +261,10 @@ else:
                                 # MULTI-SHEET EXCEL GENERATION
                                 buffer = io.BytesIO()
                                 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                                    # Sheet 1
+                                    # Sheet 1: Main standard data table
                                     df_main_results.to_excel(writer, index=False, sheet_name='Diagnostics')
-                                    # Sheet 2
-                                    df_confidence_sheet.to_excel(writer, index=False, sheet_name='Confidence Scores')
+                                    # Sheet 2: The global KPI summary table requested
+                                    df_global_summary.to_excel(writer, index=False, sheet_name='Global Summary')
                                 buffer.seek(0)
                                 
                                 st.download_button(
@@ -272,11 +277,11 @@ else:
                             
                             # On-screen preview with native Streamlit tabs
                             st.markdown("### 🖥️ On-Screen Report Preview")
-                            tab1, tab2 = st.tabs(["📊 Main Diagnostics Table", "🎯 Confidence Scores Matrix"])
+                            tab1, tab2 = st.tabs(["📊 Main Diagnostics Table", "🎯 Lot Confidence Summary"])
                             with tab1:
                                 st.dataframe(df_main_results, use_container_width=True)
                             with tab2:
-                                st.dataframe(df_confidence_sheet, use_container_width=True)
+                                st.dataframe(df_global_summary, use_container_width=True)
                     else:
                         st.error("Model file not found.")
         except Exception as e:
@@ -292,5 +297,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.17")
+st.sidebar.caption("GIM Maintenance Hub - v3.18")
 st.sidebar.caption("HistGradientBoosting Engine")
