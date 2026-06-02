@@ -19,6 +19,8 @@ st.markdown("""
     .stNumberInput > label { font-size: 14px; color: #4A5568; }
     .stAlert { border-radius: 2px; }
     .metric-card { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 4px; text-align: center; }
+    .terminal-style { background-color: #1A202C; color: #A0AEC0; font-family: monospace; padding: 15px; border-radius: 4px; line-height: 1.5; }
+    .terminal-highlight { color: #48BB78; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -64,19 +66,16 @@ def load_model():
 model = load_model()
 
 # ==========================================
-# 4. SIDEBAR NAVIGATION (BOUTONS CLIQUABLES L'UN SOUS L'AUTRE)
+# 4. SIDEBAR NAVIGATION
 # ==========================================
-# Initialisation de la mémoire de page par défaut
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "diagnostic"
 
 st.sidebar.markdown("## 🧭 Navigation")
 
-# Bouton de la première page
 if st.sidebar.button("📊 Diagnostic Engine", use_container_width=True):
     st.session_state["current_page"] = "diagnostic"
 
-# Bouton de la deuxième page juste en dessous
 if st.sidebar.button("📖 Technical Documentation", use_container_width=True):
     st.session_state["current_page"] = "documentation"
 
@@ -268,11 +267,11 @@ if st.session_state["current_page"] == "diagnostic":
                 st.error(f"An error occurred while processing the file: {e}")
 
 # ==========================================
-# PAGE B: TECHNICAL DOCUMENTATION
+# PAGE B: TECHNICAL DOCUMENTATION (VRAIS SCORES)
 # ==========================================
 else:
     st.markdown('<p class="main-title">📖 Model Documentation & Technical Specs</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Périmètre d\'application, architecture et performances du modèle pour le jury</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Périmètre d\'application, architecture et performances réelles obtenues lors des tests</p>', unsafe_allow_html=True)
     
     # --- SECTION 1: ARCHITECTURE ---
     st.markdown('<p class="section-header">1. Description du Modèle & Jeu de Données</p>', unsafe_allow_html=True)
@@ -280,44 +279,80 @@ else:
     L'intelligence artificielle intégrée à cette application est spécifiquement paramétrée pour le diagnostic des **Pompes à Injection d'Eau** industrielles par **analyse de spectres vibratoires**.
     
     * **Algorithme utilisé :** `HistGradientBoostingClassifier` (Histogram-Based Gradient Boosting Machine).
-    * **Volume du Dataset de Base :** ~**700 lignes** d'enregistrements vibratoires historiques.
+    * **Volume du Dataset de Base :** **~700 lignes** d'enregistrements vibratoires historiques réels.
     * **Dimensionnalité :** **37 paramètres** d'entrée :
         * `1` variable contextuelle textuelle (`MptDesc` convertie en ID numérique de 1 à 26).
         * `1` variable opérationnelle cinématique (vitesse de rotation en `RPM`).
-        * `35` variables spectrales (les amplitudes physiques mesurées en *In/Sec Pk* sur des bandes fréquentielles spécifiques de `0.1X` à `80X`).
-    * **Pourquoi ce choix ?** L'analyse spectrale génère des matrices denses. L'approche par histogramme discrétise les amplitudes continues en 256 niveaux. Cela permet de capter instantanément les couplages d'harmoniques (ex: l'apparition conjointe d'un pic à 1X et 2X lors d'un désalignement) beaucoup plus efficacement qu'un réseau de neurones sur un petit jeu de données de 700 lignes.
+        * `35` variables spectrales (les amplitudes physiques mesurées en *In/Sec Pk* sur des bandes fréquentielles de `0.1X` à `80X`).
     """)
     
-    # --- SECTION 2: METRICS ---
-    st.markdown('<p class="section-header">2. Évaluation des Performances (Phase de Validation)</p>', unsafe_allow_html=True)
-    st.markdown("Pour valider le modèle face au jury, le dataset de base de 700 lignes a été segmenté (*Train/Test Split*). Voici les métriques indicatives obtenues sur la portion de test mise de côté :")
+    # --- SECTION 2: METRICS (TES INFOS DE CLASSIFICATION) ---
+    st.markdown('<p class="section-header">2. Évaluation des Performances sur le Jeu de Test Final</p>', unsafe_allow_html=True)
+    st.markdown("Voici les indicateurs généraux calculés lors de l'évaluation sur le lot d'évaluation externe (*Test Set*) :")
     
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3 = st.columns(3)
     with m1:
-        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">EXCELLENTE PRÉCISION</p><h2 style="margin:0;color:#2B6CB0;">&gt; 95%</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">TEST SET ACCURACY</p><h2 style="margin:0;color:#2B6CB0;">82.28%</h2></div>', unsafe_allow_html=True)
     with m2:
-        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">TRAIN / TEST SPLIT</p><h2 style="margin:0;color:#2B6CB0;">80% / 20%</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">VOLUME DE TEST (SUPPORT)</p><h2 style="margin:0;color:#2B6CB0;">79 Lignes</h2></div>', unsafe_allow_html=True)
     with m3:
-        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">LIGNES DE BASE</p><h2 style="margin:0;color:#2B6CB0;">~ 700</h2></div>', unsafe_allow_html=True)
-    with m4:
-        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">MODES DE PANNE</p><h2 style="margin:0;color:#2B6CB0;">7</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><p style="margin:0;font-size:12px;color:#718096;">MACRO AVG F1-SCORE</p><h2 style="margin:0;color:#2B6CB0;">0.85</h2></div>', unsafe_allow_html=True)
         
-    st.markdown("""
-    > **Note de Soutenance :** Les 35 harmoniques fournissent une excellente résolubilité mathématique. Le modèle discrimine sans ambiguïté les pannes aux signatures proches, comme le *Désalignement Angulaire* et le *Désalignement Parallèle*.
-    """)
+    st.markdown("#### 📋 Classification Report Détaillé par Panne")
+    
+    # Création du DataFrame de ton Classification Report pour un affichage ultra-pro
+    report_data = {
+        "ID": [1, 2, 3, 4, 5, 6, 7],
+        "Failure Mode (Nom de la panne)": [
+            "Angular Misalignment (1)", "Ball Defect (2)", "Parallel Misalignment (3)", 
+            "Rotating Looseness (4)", "Rotor Rub (5)", "Turbulence (6)", "Unbalance (7)"
+        ],
+        "Precision": [1.00, 0.80, 0.75, 0.82, 1.00, 0.70, 0.86],
+        "Recall": [1.00, 1.00, 0.75, 0.50, 1.00, 0.93, 0.89],
+        "F1-Score": [1.00, 0.89, 0.75, 0.62, 1.00, 0.80, 0.87],
+        "Support (Lignes de Test)": [6, 4, 4, 18, 5, 15, 27]
+    }
+    df_report = pd.DataFrame(report_data)
+    st.dataframe(df_report.set_index("ID"), use_container_width=True)
+    
+    # Logs d'exécution de la console d'entraînement
+    st.markdown("#### 💻 Console Execution Logs")
+    st.markdown(f"""
+    <div class="terminal-style">
+        Evaluating Hist Gradient Boosting on the final Test Set...<br>
+        <span class="terminal-highlight">Test Set Accuracy: 82.28%</span><br>
+        -----------------------------------------------------------------<br>
+        Final Test Set Classification Report (Hist Gradient Boosting):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;precision&nbsp;&nbsp;&nbsp;&nbsp;recall&nbsp;&nbsp;f1-score&nbsp;&nbsp;&nbsp;support<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.80&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.75&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.50&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.62&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.93&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.80&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;15<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.86&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.87&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;27<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;accuracy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
+        &nbsp;&nbsp;&nbsp;macro avg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.85&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.87&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.85&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
+        weighted avg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.83&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.82&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.81&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79<br>
+        -----------------------------------------------------------------<br>
+        Generating stylized Excel file: Hist_Gradient_Boosting_Test_Predictions.xlsx...<br>
+        <span class="terminal-highlight">Success! Hist Gradient Boosting report generated and saved to your project directory.</span><br>
+        =================================================================
+    </div>
+    """, unsafe_allow_html=True)
 
     # --- SECTION 3: LIMITS ---
     st.markdown('<p class="section-header">3. Limites du Modèle & Frontières Applicatives</p>', unsafe_allow_html=True)
     st.warning("""
-    **Consignes strictes d'utilisation (Livrables Jury) :**
-    1. **Restriction Technologique :** Ce modèle est ajusté aux impédances et comportements mécaniques des **pompes à injection d'eau**. Il ne doit pas être appliqué sur des compresseurs centrifuges ou des réducteurs à engrenages sans réentraînement complet.
-    2. **Dépendance aux Descripteurs :** L'application exige impérativement la présence des 35 harmoniques cibles. Un spectre vibratoire brut non-binné ne peut pas être lu directement.
-    3. **Risque de Biais Contextuel :** Si une pompe tourne à un régime (RPM) totalement en dehors de la plage présente dans les 700 lignes initiales, le score de confiance peut chuter artificiellement.
+    **Analyse des points critiques (Idéal pour les questions du jury) :**
+    1. **Sensibilité au Desserrage Élastique (Classe 4) :** On remarque que la classe 4 (*Rotating Looseness*) possède un *Recall* plus bas (0.50). Cela indique que le modèle a tendance à rater une partie de ces pannes en les confondant avec des bruits de turbulence basse fréquence, ce qui constitue un axe d'amélioration futur évident (ex: ajout de capteurs de phase).
+    2. **Excellence sur les Axes (Classes 1 & 5) :** Le modèle obtient un score parfait de **100% (F1-score: 1.00)** sur le *Désalignement Angulaire* (1) et le *Frottement de Rotor* (5), prouvant que leurs signatures fréquentielles sont hautement discriminantes sur ces pompes.
+    3. **Restriction Technologique :** Ce modèle est ajusté aux impédances et comportements mécaniques des **pompes à injection d'eau**. Il ne doit pas être appliqué sur des compresseurs ou turbines sans réentraînement complet.
     """)
 
 # ==========================================
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.30")
+st.sidebar.caption("GIM Maintenance Hub - v3.40")
 st.sidebar.caption("HistGradientBoosting Engine")
