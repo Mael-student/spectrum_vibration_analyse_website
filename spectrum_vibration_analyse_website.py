@@ -77,7 +77,7 @@ analysis_mode = st.radio(
 st.markdown("---")
 
 # ==========================================
-# 5. MODE A: MANUAL ENTRY
+# 5. MODE A: MANUAL ENTRY (WITH CONFIDENCE SCORE)
 # ==========================================
 if analysis_mode == "Manual Entry":
     st.markdown('<p class="section-header">Asset Operational Context</p>', unsafe_allow_html=True)
@@ -104,25 +104,36 @@ if analysis_mode == "Manual Entry":
             input_row_df = pd.DataFrame([features], columns=required_columns)
             
             pred = model.predict(input_row_df)[0]
+            probabilities = model.predict_proba(input_row_df)[0]
             
             final_id = int(pred)
             diag = fault_names.get(final_id, "Normal Condition")
+            general_confidence = np.max(probabilities) * 100
             
             st.markdown('<p class="section-header">Analysis Result</p>', unsafe_allow_html=True)
             st.markdown(f"""
                 <div class="result-card">
                     <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
                     <h2 style="color: #1A365D; margin: 0;">{diag}</h2>
-                    <p style="margin-top: 15px; color: #4A5568;">
+                    <p style="margin-top: 10px; font-size: 18px; color: #2B6CB0; font-weight: bold;">
+                        Confidence Score: {general_confidence:.2f}%
+                    </p>
+                    <p style="margin-top: 10px; color: #4A5568;">
                         The system identified patterns consistent with <b>{diag.lower()}</b> at <b>{selected_point_name}</b>.
                     </p>
                 </div>
             """, unsafe_allow_html=True)
+            
+            st.markdown('<p class="section-header">Probability Distribution Across All Fault Modes</p>', unsafe_allow_html=True)
+            prob_dict = {fault_names[uid]: probabilities[i] * 100 for i, uid in enumerate(model.classes_)}
+            df_probs = pd.DataFrame(list(prob_dict.items()), columns=["Failure Mode", "Probability (%)"])
+            st.bar_chart(df_probs.set_index("Failure Mode"), horizontal=True)
+            
         else:
             st.error("Model file not found.")
 
 # ==========================================
-# 6. MODE B: FILE UPLOAD WITH ADVANCED REPORTING
+# 6. MODE B: FILE UPLOAD WITH MULTI-SHEET EXCEL
 # ==========================================
 else:
     st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
@@ -159,31 +170,56 @@ else:
                 if st.button("RUN BATCH DIAGNOSTIC"):
                     if model:
                         predictions_list = []
+                        general_conf_list = []
+                        fault_prob_lists = {uid: [] for uid in model.classes_}
                         
+                        # Sequential processing (row order is 100% preserved)
                         for i in range(len(df_input)):
                             row_data = df_input.iloc[i]
                             text_mpt = str(row_data['MptDesc']).strip()
                             
                             if text_mpt in measurement_points_mapping:
                                 numeric_mpt = measurement_points_mapping[text_mpt]
-                                
                                 features = [numeric_mpt, float(row_data['RPM'])] + [float(row_data[h]) for h in harmonics_columns]
                                 input_row_df = pd.DataFrame([features], columns=required_columns)
                                 
                                 pred = model.predict(input_row_df)[0]
+                                probabilities = model.predict_proba(input_row_df)[0]
+                                
                                 final_id = int(pred)
                                 diag = fault_names.get(final_id, "Normal Condition")
+                                conf_gen = np.max(probabilities) * 100
+                                
+                                for idx, uid in enumerate(model.classes_):
+                                    fault_prob_lists[uid].append(round(probabilities[idx] * 100, 2))
                             else:
-                                diag = "❌ Invalid MptDesc / Direction"
+                                diag = "❌ Invalid MptDesc"
+                                conf_gen = 0.0
+                                for uid in model.classes_:
+                                    fault_prob_lists[uid].append(0.0)
 
                             predictions_list.append(diag)
+                            general_conf_list.append(round(conf_gen, 2))
 
-                        # MODIFIÉ : On extrait STRICTEMENT les colonnes requises de l'entrée d'origine
-                        # (Toutes les autres colonnes "parasites" ou superflues de l'Excel de l'utilisateur sont balayées)
-                        df_results = df_input[required_columns].copy()
-                        
-                        # On réinjecte le résultat au début (Colonne A)
-                        df_results.insert(0, "Diagnostic Result", predictions_list)
+                        # =========================================================
+                        # SHEET 1: MAIN RESULTS DATAFRAME (DIAGNOSTICS)
+                        # =========================================================
+                        df_main_results = df_input[required_columns].copy()
+                        df_main_results.insert(0, "Diagnostic Result", predictions_list)
+
+                        # =========================================================
+                        # SHEET 2: SEPARATE CONFIDENCE SCORES MATRIX
+                        # =========================================================
+                        df_confidence_sheet = pd.DataFrame({
+                            "MptDesc": df_input["MptDesc"],
+                            "RPM": df_input["RPM"],
+                            "Assigned Diagnostic": predictions_list,
+                            "Confidence Score (%)": general_conf_list
+                        })
+                        # Dynamically add individual fault probability columns
+                        for uid in model.classes_:
+                            col_title = f"Prob: {fault_names[uid]} (%)"
+                            df_confidence_sheet[col_title] = fault_prob_lists[uid]
 
                         st.markdown('<p class="section-header">Automated Diagnostic Report</p>', unsafe_allow_html=True)
                         
@@ -192,6 +228,9 @@ else:
                                 <div class="result-card">
                                     <p style="color: #718096; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Conclusion</p>
                                     <h2 style="color: #1A365D; margin: 0;">{predictions_list[0]}</h2>
+                                    <p style="margin-top: 10px; font-size: 18px; color: #2B6CB0; font-weight: bold;">
+                                        Confidence: {general_conf_list[0]}%
+                                    </p>
                                     <p style="margin-top: 15px; color: #4A5568;">
                                         The analysis identified <b>{predictions_list[0].lower()}</b> for the location: <b>{df_input.iloc[0]['MptDesc']}</b>.
                                     </p>
@@ -201,7 +240,10 @@ else:
                             b_col1, b_col2, _ = st.columns([1, 1, 3])
                             
                             with b_col1:
-                                csv_data = df_results.to_csv(index=False).encode('utf-8')
+                                # For CSV output, we keep the overall score alongside the main table since CSV has no tabs
+                                df_csv = df_main_results.copy()
+                                df_csv.insert(1, "Confidence Score (%)", general_conf_list)
+                                csv_data = df_csv.to_csv(index=False).encode('utf-8')
                                 st.download_button(
                                     label="📥 Download as CSV",
                                     data=csv_data,
@@ -211,20 +253,30 @@ else:
                                 )
                                 
                             with b_col2:
+                                # MULTI-SHEET EXCEL GENERATION
                                 buffer = io.BytesIO()
                                 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                                    df_results.to_excel(writer, index=False, sheet_name='Diagnostics')
+                                    # Sheet 1
+                                    df_main_results.to_excel(writer, index=False, sheet_name='Diagnostics')
+                                    # Sheet 2
+                                    df_confidence_sheet.to_excel(writer, index=False, sheet_name='Confidence Scores')
                                 buffer.seek(0)
                                 
                                 st.download_button(
-                                    label="📊 Download as Excel (XLSX)",
+                                    label="📊 Download Multi-Sheet Excel (XLSX)",
                                     data=buffer,
                                     file_name="vibration_diagnostic_report.xlsx",
                                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                     use_container_width=True
                                 )
                             
-                            st.dataframe(df_results, use_container_width=True)
+                            # On-screen preview with native Streamlit tabs
+                            st.markdown("### 🖥️ On-Screen Report Preview")
+                            tab1, tab2 = st.tabs(["📊 Main Diagnostics Table", "🎯 Confidence Scores Matrix"])
+                            with tab1:
+                                st.dataframe(df_main_results, use_container_width=True)
+                            with tab2:
+                                st.dataframe(df_confidence_sheet, use_container_width=True)
                     else:
                         st.error("Model file not found.")
         except Exception as e:
@@ -240,5 +292,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v3.14")
+st.sidebar.caption("GIM Maintenance Hub - v3.17")
 st.sidebar.caption("HistGradientBoosting Engine")
