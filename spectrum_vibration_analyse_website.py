@@ -43,12 +43,13 @@ fault_names = {
     4: 'Rotating Looseness', 5: 'Rotor Rub', 6: 'Turbulence', 7: 'Unbalance'
 }
 
-# --- Catégorisation vibratoire demandée ---
+# --- Corrected Vibration Categorization ---
 sub_synchronous_cols = ["0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X"]
+# 30X, 45X, and 80X are integer multiples, strictly placed under Synchronous (High Harmonics)
 synchronous_cols = ["1X", "2X", "3X", "4X", "5X", "6X", "7X", "8X", "9X", "10X", "12X", "14X", "15X", "16X", "30X", "45X", "80X"]
 non_synchronous_cols = ["1.5X", "1.9X", "2.5X", "3.5X", "3.84X", "4.16X", "4.2X", "5.9X", "6.3X", "9X-30X", "11.3X", "13.8X"]
 
-# Préservation de l'ordre exact attendu par le modèle .joblib
+# Preservation of the exact underlying feature order expected by the .joblib model
 harmonics_columns = [
     "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", "2X", 
     "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
@@ -65,13 +66,13 @@ required_columns = ['MptDesc', 'RPM'] + harmonics_columns
 def load_model():
     model_filename = 'hgb_maintenance_model.joblib'
     if not os.path.exists(model_filename):
-        st.error(f"❌ Erreur Système : Le fichier '{model_filename}' est introuvable dans le répertoire courant.")
-        st.write("Fichiers réellement présents autour du script :", os.listdir('.'))
+        st.error(f"❌ System Error: The file '{model_filename}' was not found in the current directory.")
+        st.write("Files found in the script directory:", os.listdir('.'))
         return None
     try:
         return joblib.load(model_filename)
     except Exception as e:
-        st.error(f"❌ Erreur critique lors du chargement du modèle `.joblib` :")
+        st.error(f"❌ Critical error occurred while loading the `.joblib` model:")
         st.exception(e)
         return None
 
@@ -174,22 +175,22 @@ if st.session_state["current_page"] == "diagnostic":
             st.markdown("---")
             st.markdown("### 🔍 Required Columns and Dimensions Details")
             st.markdown("""
-            Your file must contain exactly **37 variables** per row, matching the structural needs of the model :
+            Your file must contain exactly **37 variables** per row, matching the structural needs of the model:
             
-            1. **`MptDesc`** : Textual context variable (ex: *Motor Inboard Axial*, *Pump Outboard Vertical*, etc.).
-            2. **`RPM`** : Kinematic operational variable (Rotational speed).
+            1. **`MptDesc`**: Textual context variable (e.g., *Motor Inboard Axial*, *Pump Outboard Vertical*, etc.).
+            2. **`RPM`**: Kinematic operational variable (Rotational speed).
             3. **The 35 Target Spectral Amplitudes (Physical magnitudes in *In/Sec Pk*) grouped by types:**
             """)
             
             doc_col1, doc_col2, doc_col3 = st.columns(3)
             with doc_col1:
-                st.markdown("**Sub-Synchronous Bands :**")
+                st.markdown("**Sub-Synchronous Bands:**")
                 st.code("\n".join(sub_synchronous_cols), language="text")
             with doc_col2:
-                st.markdown("**Synchronous (Fundamental & Harmonics) :**")
+                st.markdown("**Synchronous (Fundamental & Harmonics):**")
                 st.code("\n".join(synchronous_cols), language="text")
             with doc_col3:
-                st.markdown("**Non-Synchronous Bands :**")
+                st.markdown("**Non-Synchronous Bands:**")
                 st.code("\n".join(non_synchronous_cols), language="text")
 
         uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
@@ -291,7 +292,7 @@ if st.session_state["current_page"] == "diagnostic":
                                     use_container_width=True
                                 )
                             
-                            st.markdown("### 🖥️ On-Screen Report Preview")
+                                st.markdown("### 🖥️ On-Screen Report Preview")
                             tab1, tab2 = st.tabs(["📊 Main Diagnostics Table (Ordered)", "🎯 Lot Confidence Summary"])
                             with tab1:
                                 st.dataframe(df_main_results, use_container_width=True)
@@ -333,13 +334,13 @@ else:
     
     doc_col1, doc_col2, doc_col3 = st.columns(3)
     with doc_col1:
-        st.markdown("**Sub-Synchronous Bands :**")
+        st.markdown("**Sub-Synchronous Bands:**")
         st.code("\n".join(sub_synchronous_cols), language="text")
     with doc_col2:
-        st.markdown("**Synchronous (Fundamental & Harmonics) :**")
+        st.markdown("**Synchronous (Fundamental & Harmonics):**")
         st.code("\n".join(synchronous_cols), language="text")
     with doc_col3:
-        st.markdown("**Non-Synchronous Bands :**")
+        st.markdown("**Non-Synchronous Bands:**")
         st.code("\n".join(non_synchronous_cols), language="text")
 
     # --- c) MODEL ARCHITECTURE ---
