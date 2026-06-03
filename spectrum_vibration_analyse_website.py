@@ -52,13 +52,26 @@ harmonics_columns = [
 required_columns = ['MptDesc', 'RPM'] + harmonics_columns
 
 # ==========================================
-# 3. MODEL LOADING
+# 3. MODEL LOADING (CORRIGÉ & DIAGNOSTIC)
 # ==========================================
+import os
+
 @st.cache_resource
 def load_model():
+    model_filename = 'hgb_maintenance_model.joblib'
+    
+    # 1. Vérification physique de la présence du fichier
+    if not os.path.exists(model_filename):
+        st.error(f"❌ Erreur Système : Le fichier '{model_filename}' est introuvable dans le répertoire courant.")
+        st.write("Fichiers réellement présents autour du script :", os.listdir('.'))
+        return None
+        
+    # 2. Tentative de chargement avec affichage de la vraie erreur Python
     try:
-        return joblib.load('hgb_maintenance_model.joblib')
-    except:
+        return joblib.load(model_filename)
+    except Exception as e:
+        st.error(f"❌ Erreur critique lors du chargement du modèle `.joblib` :")
+        st.exception(e) # Cela va afficher le message d'erreur complet (Traceback) à l'écran
         return None
 
 model = load_model()
