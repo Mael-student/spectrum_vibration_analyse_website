@@ -45,8 +45,8 @@ fault_names = {
 
 # --- Catégorisation vibratoire demandée ---
 sub_synchronous_cols = ["0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X"]
-synchronous_cols = ["1X", "2X", "3X", "4X", "5X", "6X", "7X", "8X", "9X", "10X", "12X", "14X", "15X", "16X"]
-non_synchronous_cols = ["1.5X", "1.9X", "2.5X", "3.5X", "3.84X", "4.16X", "4.2X", "5.9X", "6.3X", "9X-30X", "11.3X", "13.8X", "30X", "45X", "80X"]
+synchronous_cols = ["1X", "2X", "3X", "4X", "5X", "6X", "7X", "8X", "9X", "10X", "12X", "14X", "15X", "16X", "30X", "45X", "80X"]
+non_synchronous_cols = ["1.5X", "1.9X", "2.5X", "3.5X", "3.84X", "4.16X", "4.2X", "5.9X", "6.3X", "9X-30X", "11.3X", "13.8X"]
 
 # Préservation de l'ordre exact attendu par le modèle .joblib
 harmonics_columns = [
