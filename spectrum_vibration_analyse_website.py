@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import io
+import os
 
 # ==========================================
 # 1. SETUP & PROFESSIONAL STYLING
@@ -42,6 +43,12 @@ fault_names = {
     4: 'Rotating Looseness', 5: 'Rotor Rub', 6: 'Turbulence', 7: 'Unbalance'
 }
 
+# --- Catégorisation vibratoire demandée ---
+sub_synchronous_cols = ["0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X"]
+synchronous_cols = ["1X", "2X", "3X", "4X", "5X", "6X", "7X", "8X", "9X", "10X", "12X", "14X", "15X", "16X"]
+non_synchronous_cols = ["1.5X", "1.9X", "2.5X", "3.5X", "3.84X", "4.16X", "4.2X", "5.9X", "6.3X", "9X-30X", "11.3X", "13.8X", "30X", "45X", "80X"]
+
+# Préservation de l'ordre exact attendu par le modèle .joblib
 harmonics_columns = [
     "0.1X-0.8X", "0.33X", "0.38X", "0.48X", "0.5X", "0.8X-1X", "1X", "1.5X", "1.9X", "2X", 
     "2.5X", "3X", "3.5X", "3.84X", "4X", "4.16X", "4.2X", "5X", "5.9X", "6X", 
@@ -52,26 +59,20 @@ harmonics_columns = [
 required_columns = ['MptDesc', 'RPM'] + harmonics_columns
 
 # ==========================================
-# 3. MODEL LOADING (CORRIGÉ & DIAGNOSTIC)
+# 3. MODEL LOADING
 # ==========================================
-import os
-
 @st.cache_resource
 def load_model():
     model_filename = 'hgb_maintenance_model.joblib'
-    
-    # 1. Vérification physique de la présence du fichier
     if not os.path.exists(model_filename):
         st.error(f"❌ Erreur Système : Le fichier '{model_filename}' est introuvable dans le répertoire courant.")
         st.write("Fichiers réellement présents autour du script :", os.listdir('.'))
         return None
-        
-    # 2. Tentative de chargement avec affichage de la vraie erreur Python
     try:
         return joblib.load(model_filename)
     except Exception as e:
         st.error(f"❌ Erreur critique lors du chargement du modèle `.joblib` :")
-        st.exception(e) # Cela va afficher le message d'erreur complet (Traceback) à l'écran
+        st.exception(e)
         return None
 
 model = load_model()
@@ -98,7 +99,6 @@ if st.session_state["current_page"] == "diagnostic":
     st.markdown('<p class="main-title">Water Injection Pump Diagnostic System</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Vibration Spectrum Analysis Engine (HistGradientBoosting)</p>', unsafe_allow_html=True)
 
-    # Global Model Status Banner
     if not model:
         st.error("⚠️ **Model file not found (`hgb_maintenance_model.joblib`).** Please ensure the trained model file is placed in the exact same directory as this script.")
 
@@ -171,7 +171,6 @@ if st.session_state["current_page"] == "diagnostic":
             * **Column Order Flexibility:** Columns can be arranged in **ANY** order. The system dynamically auto-aligns features.
             """)
             
-            # --- INJECTION DES SPÉCIFICATIONS TECHNIQUES DEPUIS LA DOC ---
             st.markdown("---")
             st.markdown("### 🔍 Required Columns and Dimensions Details")
             st.markdown("""
@@ -179,20 +178,19 @@ if st.session_state["current_page"] == "diagnostic":
             
             1. **`MptDesc`** : Textual context variable (ex: *Motor Inboard Axial*, *Pump Outboard Vertical*, etc.).
             2. **`RPM`** : Kinematic operational variable (Rotational speed).
-            3. **The 35 Target Spectral Amplitudes (Physical magnitudes in *In/Sec Pk*)** :
+            3. **The 35 Target Spectral Amplitudes (Physical magnitudes in *In/Sec Pk*) grouped by types:**
             """)
             
-            # Présentation propre des colonnes sous forme de sous-catégories
             doc_col1, doc_col2, doc_col3 = st.columns(3)
             with doc_col1:
-                st.markdown("**Sub-synchronous & Sync Bands :**")
-                st.code("\n".join(harmonics_columns[0:7]), language="text")
+                st.markdown("**Sub-Synchronous Bands :**")
+                st.code("\n".join(sub_synchronous_cols), language="text")
             with doc_col2:
-                st.markdown("**Low-Intermediate Harmonics :**")
-                st.code("\n".join(harmonics_columns[7:18]), language="text")
+                st.markdown("**Synchronous (Fundamental & Harmonics) :**")
+                st.code("\n".join(synchronous_cols), language="text")
             with doc_col3:
-                st.markdown("**Intermediate-High & Very High :**")
-                st.code("\n".join(harmonics_columns[18:]), language="text")
+                st.markdown("**Non-Synchronous Bands :**")
+                st.code("\n".join(non_synchronous_cols), language="text")
 
         uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
@@ -330,12 +328,19 @@ else:
         * `1` kinematic operational variable (rotational speed in `RPM`).
         * `35` spectral variables (physical amplitudes measured in *In/Sec Pk* over specific frequency bands).
     
-    **Complete List of the 35 Target Spectral Amplitudes:**
-    * **Sub-synchronous & Sync Bands:** `0.1X-0.8X`, `0.33X`, `0.38X`, `0.48X`, `0.5X`, `0.8X-1X`, `1X`
-    * **Low-Intermediate Harmonics:** `1.5X`, `1.9X`, `2X`, `2.5X`, `3X`, `3.5X`, `3.84X`, `4X`, `4.16X`, `4.2X`, `5X`
-    * **Intermediate-High Harmonics:** `5.9X`, `6X`, `6.3X`, `7X`, `8X`, `9X`, `9X-30X`, `10X`, `11.3X`, `12X`, `13.8X`, `14X`, `15X`, `16X`
-    * **Very High Frequency Bands:** `30X`, `45X`, `80X`
+    **Complete List of the 35 Target Spectral Amplitudes grouped by types:**
     """)
+    
+    doc_col1, doc_col2, doc_col3 = st.columns(3)
+    with doc_col1:
+        st.markdown("**Sub-Synchronous Bands :**")
+        st.code("\n".join(sub_synchronous_cols), language="text")
+    with doc_col2:
+        st.markdown("**Synchronous (Fundamental & Harmonics) :**")
+        st.code("\n".join(synchronous_cols), language="text")
+    with doc_col3:
+        st.markdown("**Non-Synchronous Bands :**")
+        st.code("\n".join(non_synchronous_cols), language="text")
 
     # --- c) MODEL ARCHITECTURE ---
     st.markdown('<p class="section-header">c) Model Architecture (How the Model Works)</p>', unsafe_allow_html=True)
