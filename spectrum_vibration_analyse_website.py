@@ -19,8 +19,6 @@ st.markdown("""
     .stNumberInput > label { font-size: 14px; color: #4A5568; }
     .stAlert { border-radius: 2px; }
     .metric-card { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 4px; text-align: center; }
-    .terminal-style { background-color: #1A202C; color: #A0AEC0; font-family: monospace; padding: 15px; border-radius: 4px; line-height: 1.5; }
-    .terminal-highlight { color: #48BB78; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -87,6 +85,10 @@ if st.session_state["current_page"] == "diagnostic":
     st.markdown('<p class="main-title">Water Injection Pump Diagnostic System</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Vibration Spectrum Analysis Engine (HistGradientBoosting)</p>', unsafe_allow_html=True)
 
+    # Global Model Status Banner
+    if not model:
+        st.error("⚠️ **Model file not found (`hgb_maintenance_model.joblib`).** Please ensure the trained model file is placed in the exact same directory as this script.")
+
     analysis_mode = st.radio(
         "Select Data Input Method:",
         ["Manual Entry", "Excel / CSV File Upload"],
@@ -145,7 +147,7 @@ if st.session_state["current_page"] == "diagnostic":
                 df_probs = pd.DataFrame(list(prob_dict.items()), columns=["Failure Mode", "Probability (%)"])
                 st.bar_chart(df_probs.set_index("Failure Mode"), horizontal=True)
             else:
-                st.error("Model file not found.")
+                st.error("Cannot execute diagnostic. Model file not found.")
 
     else:
         st.markdown('<p class="section-header">Data Acquisition (File Import)</p>', unsafe_allow_html=True)
@@ -262,7 +264,7 @@ if st.session_state["current_page"] == "diagnostic":
                             with tab2:
                                 st.dataframe(df_global_summary, use_container_width=True)
                         else:
-                            st.error("Model file not found.")
+                            st.error("Cannot execute diagnostic. Model file not found.")
             except Exception as e:
                 st.error(f"An error occurred while processing the file: {e}")
 
@@ -341,5 +343,5 @@ else:
 # 7. FOOTER / SYSTEM INFO
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.caption("GIM Maintenance Hub - v4.00")
+st.sidebar.caption("GIM Maintenance Hub - v4.10")
 st.sidebar.caption("HistGradientBoosting Engine")
