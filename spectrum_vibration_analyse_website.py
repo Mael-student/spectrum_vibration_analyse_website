@@ -170,6 +170,29 @@ if st.session_state["current_page"] == "diagnostic":
             * **Multi-Row Batch Processing:** A single uploaded file may contain **multiple data entries**.
             * **Column Order Flexibility:** Columns can be arranged in **ANY** order. The system dynamically auto-aligns features.
             """)
+            
+            # --- INJECTION DES SPÉCIFICATIONS TECHNIQUES DEPUIS LA DOC ---
+            st.markdown("---")
+            st.markdown("### 🔍 Required Columns and Dimensions Details")
+            st.markdown("""
+            Your file must contain exactly **37 variables** per row, matching the structural needs of the model :
+            
+            1. **`MptDesc`** : Textual context variable (ex: *Motor Inboard Axial*, *Pump Outboard Vertical*, etc.).
+            2. **`RPM`** : Kinematic operational variable (Rotational speed).
+            3. **The 35 Target Spectral Amplitudes (Physical magnitudes in *In/Sec Pk*)** :
+            """)
+            
+            # Présentation propre des colonnes sous forme de sous-catégories
+            doc_col1, doc_col2, doc_col3 = st.columns(3)
+            with doc_col1:
+                st.markdown("**Sub-synchronous & Sync Bands :**")
+                st.code("\n".join(harmonics_columns[0:7]), language="text")
+            with doc_col2:
+                st.markdown("**Low-Intermediate Harmonics :**")
+                st.code("\n".join(harmonics_columns[7:18]), language="text")
+            with doc_col3:
+                st.markdown("**Intermediate-High & Very High :**")
+                st.code("\n".join(harmonics_columns[18:]), language="text")
 
         uploaded_file = st.file_uploader("Choose an Excel or CSV file", type=['xlsx', 'csv'])
 
