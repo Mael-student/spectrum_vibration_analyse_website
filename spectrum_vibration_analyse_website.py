@@ -291,8 +291,6 @@ if st.session_state["current_page"] == "diagnostic":
                                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                     use_container_width=True
                                 )
-                            
-                                st.markdown("### 🖥️ On-Screen Report Preview")
                             tab1, tab2 = st.tabs(["📊 Main Diagnostics Table (Ordered)", "🎯 Lot Confidence Summary"])
                             with tab1:
                                 st.dataframe(df_main_results, use_container_width=True)
